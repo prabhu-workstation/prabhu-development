@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    environment {
+        ENVIRONMENT = "stage"
+    }
+
+    stages {
+
+        stage('Clone') {
+            steps {
+                echo 'Cloning Repository'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Static Website Build Started'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'sudo cp -r * /var/www/html/'
+                echo 'Website Deployed'
+            }
+        }
+    }
+
+    post {
+
+        always {
+
+            emailext(
+                to: 'ganeshaws21@gmail.com',
+
+                subject: "[$BUILD_STATUS] ${ENVIRONMENT} - ${JOB_NAME} #${BUILD_NUMBER}",
+
+                mimeType: 'text/html',
+
+                body: """
+                <h2>Static Website Deployment Completed</h2>
+
+                <b>Environment:</b> ${ENVIRONMENT}<br><br>
+
+                <b>Status:</b> ${currentBuild.currentResult}<br><br>
+
+                <b>Job Name:</b> ${JOB_NAME}<br><br>
+
+                <b>Build Number:</b> ${BUILD_NUMBER}<br><br>
+
+                <b>Build URL:</b>
+                <a href="${BUILD_URL}">${BUILD_URL}</a><br><br>
+
+                <b>Console Log:</b>
+                <a href="${BUILD_URL}console">${BUILD_URL}console</a><br><br>
+
+                Thanks,<br>
+                Jenkins
+                """,
+
+                attachLog: true,
+                compressLog: true
+            )
+        }
+    }
+}
